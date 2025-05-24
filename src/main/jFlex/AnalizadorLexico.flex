@@ -1,5 +1,8 @@
 package com.compiler;
 import java_cup.runtime.Symbol;
+import java.util.List;
+import java.util.ArrayList;
+import java_cup.runtime.Symbol;
 
 %%
 %class AnalizadorLexico
@@ -11,8 +14,7 @@ import java_cup.runtime.Symbol;
 %column
 
 %{
-    import java.util.List;
-    import java.util.ArrayList;
+
 
     private List<String> errores = new ArrayList<>();
 
@@ -23,7 +25,6 @@ import java_cup.runtime.Symbol;
     private void reportarError(String mensaje, int linea, int columna) {
         errores.add("Error léxico: " + mensaje + " en línea " + linea + ", columna " + columna);
     }
-
 
     private Symbol symbol(int type) {
         return new Symbol(type, yyline + 1, yycolumn + 1);
