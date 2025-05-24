@@ -15,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/compilar")
-@CrossOrigin
 public class ControladorSimpleScript {
 
     @Autowired
