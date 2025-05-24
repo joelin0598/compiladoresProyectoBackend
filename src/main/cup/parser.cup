@@ -1,0 +1,125 @@
+package com.compiler;
+import java_cup.runtime.*;
+
+parser code {:
+    public List<String> listaErrores = new ArrayList<>();
+
+    public void reportarError(String mensaje, int linea, int columna) {
+        listaErrores.add("Error sintáctico: " + mensaje + " en línea " + linea + ", columna " + columna);
+    }
+
+    public List<String> getErrores() {
+        return listaErrores;
+    }
+
+    @Override
+    public void report_error(String message, Object info) {
+        if (info instanceof Symbol sym) {
+            int linea = sym.left + 1;
+            int columna = sym.right + 1;
+            reportarError(message, linea, columna);
+        } else {
+            listaErrores.add("Error sintáctico: " + message);
+        }
+    }
+
+    @Override
+    public void report_fatal_error(String message, Object info) {
+        if (info instanceof Symbol sym) {
+            int linea = sym.left + 1;
+            int columna = sym.right + 1;
+            reportarError("Fallo fatal: " + message, linea, columna);
+            throw new RuntimeException("Fallo fatal: " + message + " en línea " + linea + ", columna " + columna);
+        } else {
+            listaErrores.add("Fallo fatal: " + message);
+            throw new RuntimeException("Fallo fatal: " + message);
+        }
+    }
+:};
+
+
+
+terminal DEFINE, PRINT, IF, ELSE, ELSEIF, WHILE, DO, LOOP, FUNCTION, RETURN, END, THEN;
+terminal TRUE, FALSE;
+terminal AND, OR, NOT;
+terminal EQ, EQEQ, NEQ, LT, GT, LTE, GTE;
+terminal PLUS, MINUS, MULT, DIV;
+terminal LPAR, RPAR, SEMICOLON, COMMA;
+terminal NUMERO, DECIMAL, CADENA;
+terminal ID;
+//terminal ERROR;
+
+non terminal programa, sentencias, sentencia, expr, expr_list, parametros, argumentos, bloque, epsilon;
+
+precedence left PLUS, MINUS;
+precedence left MULT, DIV;
+precedence left AND, OR;
+precedence left EQEQ, NEQ;
+precedence left LT, GT, LTE, GTE;
+precedence right NOT;
+precedence left LPAR, RPAR;
+precedence left SEMICOLON, COMMA;
+precedence left TRUE, FALSE;
+precedence left DEFINE, PRINT, IF, ELSE, ELSEIF, WHILE, LOOP, FUNCTION, RETURN, END;
+precedence left TRUE, FALSE;
+precedence left AND, OR, NOT;
+precedence left EQ, EQEQ, NEQ, LT, GT, LTE, GTE;
+
+
+start with programa;
+
+programa ::= sentencias;
+
+sentencias ::= sentencias sentencia
+             | sentencia;
+
+sentencia ::= DEFINE ID EQ expr SEMICOLON
+            | ID EQ expr SEMICOLON
+            | RETURN expr SEMICOLON
+            | PRINT expr SEMICOLON
+            | PRINT expr_list SEMICOLON
+            | IF expr THEN bloque ELSEIF expr THEN bloque ELSE bloque END
+            | IF expr THEN bloque ELSE bloque END
+            | IF expr THEN bloque END
+            | WHILE expr DO bloque END
+            | LOOP LPAR expr SEMICOLON expr SEMICOLON expr RPAR DO bloque END
+            | FUNCTION ID LPAR parametros RPAR bloque END;
+
+
+parametros ::= expr
+             | parametros COMMA expr
+             | epsilon ;
+
+argumentos ::= expr
+             | argumentos COMMA expr
+             | epsilon ;
+
+expr_list ::= expr
+            | expr_list COMMA expr;
+
+bloque ::= sentencias;
+
+expr ::= expr PLUS expr
+       | expr MINUS expr
+       | expr MULT expr
+       | expr DIV expr
+       | expr EQ expr
+       | expr EQEQ expr
+       | expr NEQ expr
+       | expr LT expr
+       | expr LTE expr
+       | expr GT expr
+       | expr GTE expr
+       | expr AND expr
+       | expr OR expr
+       | NOT expr
+       | LPAR expr RPAR
+       | ID
+       | NUMERO
+       | DECIMAL
+       | CADENA
+       | TRUE
+       | FALSE
+       | ID LPAR argumentos RPAR;
+
+epsilon ::= /* vacío */ ;
